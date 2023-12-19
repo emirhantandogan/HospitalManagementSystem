@@ -45,40 +45,27 @@ public class PatientLogin extends JFrame {
     private void loginPatient() {
         String name = txtPatientName.getText();
         String password = new String(txtPassword.getPassword());
-        String hashedPassword = Hashing.hashPassword(password);
+        String hashedPassword = Hashing.hashPassword(password); // Ensure Hashing class exists and works correctly
 
-        Connection conn = null;
-        PreparedStatement pstmt = null;
-        ResultSet rs = null;
-        try {
-            conn = DBConnection.getConnection();
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement("SELECT * FROM patient WHERE patientName = ? AND patientPassword = ?")) {
 
-            // Check if the patient exists with the given name and hashed password
-            String sql = "SELECT * FROM patient WHERE patientName = ? AND patientPassword = ?";
-            pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, name);
             pstmt.setString(2, hashedPassword);
 
-            rs = pstmt.executeQuery();
-            if (rs.next()) {
-                JOptionPane.showMessageDialog(this, "Login Successful!");
-                // Here, you can redirect the patient to another window or perform other actions upon successful login
-                new PatientPage().setVisible(true);
-                this.dispose();//closes the login window
-            } else {
-                JOptionPane.showMessageDialog(this, "Invalid Credentials!");
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    int patientId = rs.getInt("patientId"); // Assuming the column name is 'patientId'
+                    JOptionPane.showMessageDialog(this, "Login Successful!");
+                    new PatientPage(patientId).setVisible(true); // Open PatientPage with the patient's ID
+                    this.dispose(); // Close the login window
+                } else {
+                    JOptionPane.showMessageDialog(this, "Invalid Credentials!");
+                }
             }
         } catch (Exception ex) {
             ex.printStackTrace();
             JOptionPane.showMessageDialog(this, "Error in login: " + ex.getMessage());
-        } finally {
-            try {
-                if (rs != null) rs.close();
-                if (pstmt != null) pstmt.close();
-                if (conn != null) conn.close();
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
         }
     }
 

@@ -49,6 +49,30 @@ public class AdminPage extends JFrame {
         btnShowNurses.addActionListener(e -> showNurses());
         buttonPanel.add(btnShowNurses);
 
+        JButton btnAddRoom = new JButton("Add Room");
+        btnAddRoom.addActionListener(e -> new AddRoom());
+        buttonPanel.add(btnAddRoom);
+
+        JButton btnAddDepartment = new JButton("Add Department");
+        btnAddDepartment.addActionListener(e -> new AddDepartment());
+        buttonPanel.add(btnAddDepartment);
+
+        JButton btnShowRooms = new JButton("Show Rooms");
+        btnShowRooms.addActionListener(e -> showRooms());
+        buttonPanel.add(btnShowRooms);
+
+        JButton btnShowDepartments = new JButton("Show Departments");
+        btnShowDepartments.addActionListener(e -> showDepartments());
+        buttonPanel.add(btnShowDepartments);
+
+        JButton btnDeleteRoom = new JButton("Delete Room");
+        btnDeleteRoom.addActionListener(e -> new DeleteRoom());
+        buttonPanel.add(btnDeleteRoom);
+
+        JButton btnDeleteDepartment = new JButton("Delete Department");
+        btnDeleteDepartment.addActionListener(e -> new DeleteDepartment());
+        buttonPanel.add(btnDeleteDepartment);
+
 
         // Add more buttons as needed
 
@@ -126,6 +150,33 @@ public class AdminPage extends JFrame {
         return records.toArray(new Object[0][]);
     }
 
+    private void showRooms() {
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement("SELECT roomId, roomType, availability, nurseId FROM room");
+             ResultSet rs = pstmt.executeQuery()) {
+
+            Object[][] data = resultSetToObjectArray(rs);
+            String[] columnNames = {"Room ID", "Room Type", "Availability", "Nurse ID"};
+            setTableData(data, columnNames);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Error in fetching rooms: " + ex.getMessage());
+        }
+    }
+
+    private void showDepartments() {
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement("SELECT departmentId, departmentName FROM department");
+             ResultSet rs = pstmt.executeQuery()) {
+
+            Object[][] data = resultSetToObjectArray(rs);
+            String[] columnNames = {"Department ID", "Department Name"};
+            setTableData(data, columnNames);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Error in fetching departments: " + ex.getMessage());
+        }
+    }
 
 
     public static void main(String[] args) {

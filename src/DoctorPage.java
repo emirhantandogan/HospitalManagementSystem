@@ -13,18 +13,17 @@ public class DoctorPage extends JFrame {
         setSize(300, 200);
         setLayout(new FlowLayout());
 
-        JButton btnDetermineSchedule = new JButton("Determine Schedule");
-        btnDetermineSchedule.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                new DetermineSchedule(doctorId);
-            }
-        });
+        JButton btnUnavailableTime = new JButton("Unavailable Time");
+        btnUnavailableTime.addActionListener(e -> new SetUnavailableTime(doctorId));
+        add(btnUnavailableTime);
 
-        add(btnDetermineSchedule);
+        JButton btnShowAvailableRooms = new JButton("Show Available Rooms");
+        btnShowAvailableRooms.addActionListener(e -> new ShowAvailableRooms());
+        add(btnShowAvailableRooms);
 
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setVisible(true);
     }
+
 
 }
