@@ -1,8 +1,6 @@
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -12,13 +10,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 
+
 public class AdminPage extends JFrame {
 
     private JTable table;
 
     public AdminPage() {
         setTitle("Admin Dashboard");
-        setSize(800, 600);
+        setSize(1400, 600);
         setLayout(new BorderLayout());
 
         // Panel for buttons
@@ -73,6 +72,30 @@ public class AdminPage extends JFrame {
         btnDeleteDepartment.addActionListener(e -> new DeleteDepartment());
         buttonPanel.add(btnDeleteDepartment);
 
+        JButton btnShowPatients = new JButton("Show Patients");
+        btnShowPatients.addActionListener(e -> showPatients());
+        buttonPanel.add(btnShowPatients);
+
+        JButton btnPatientStatistics = new JButton("Patient Statistics");
+        btnPatientStatistics.addActionListener(e -> new PatientStatistics());
+        buttonPanel.add(btnPatientStatistics);
+
+        JButton btnDeptPatientRoomStats = new JButton("Dept Patient Room Stats");
+        btnDeptPatientRoomStats.addActionListener(e -> new DepartmentPatientRoomStatistics());
+        buttonPanel.add(btnDeptPatientRoomStats);
+
+        JButton btnNurseAppointmentRatio = new JButton("Nurse Appointment Ratios");
+        btnNurseAppointmentRatio.addActionListener(e -> new NurseAppointmentRatioStatistics());
+        buttonPanel.add(btnNurseAppointmentRatio);
+
+        JButton btnMostBookedRooms = new JButton("Most Booked Rooms");
+        btnMostBookedRooms.addActionListener(e -> new MostBookedRoomStatistics());
+        buttonPanel.add(btnMostBookedRooms);
+
+        JButton btnMostRoomsBookedDoctors = new JButton("Most Rooms Booked by Doctors");
+        btnMostRoomsBookedDoctors.addActionListener(e -> new MostRoomsBookedDoctorStatistics());
+        buttonPanel.add(btnMostRoomsBookedDoctors);
+
 
         // Add more buttons as needed
 
@@ -93,19 +116,49 @@ public class AdminPage extends JFrame {
         table.setModel(new DefaultTableModel(data, columnNames));
     }
 
+    private void showPatients() {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        try {
+            conn = DBConnection.getConnection();
+            String sql = "SELECT patientId, patientName, dob, gender, address, contactInfo FROM patient";
+            pstmt = conn.prepareStatement(sql);
+            rs = pstmt.executeQuery();
+
+            // Convert ResultSet to Object[][]
+            Object[][] data = resultSetToObjectArray(rs);
+            String[] columnNames = {"Patient ID", "Name", "Date of Birth", "Gender", "Address", "Contact Info"};
+            setTableData(data, columnNames);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Error in fetching patients: " + ex.getMessage());
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (pstmt != null) pstmt.close();
+                if (conn != null) conn.close();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
+
     private void showDoctors() {
         Connection conn = null;
         PreparedStatement pstmt = null;
         ResultSet rs = null;
         try {
             conn = DBConnection.getConnection();
-            String sql = "SELECT doctorId, doctorName, doctorExpertise, departmentId FROM doctor";
+            // Include roomId in the SELECT statement
+            String sql = "SELECT doctorId, doctorName, doctorExpertise, departmentId, roomId FROM doctor";
             pstmt = conn.prepareStatement(sql);
             rs = pstmt.executeQuery();
 
             // Convert ResultSet to Object[][]
             Object[][] data = resultSetToObjectArray(rs);
-            String[] columnNames = {"Doctor ID", "Name", "Expertise", "Department ID"};
+            // Include "Room ID" in the column names
+            String[] columnNames = {"Doctor ID", "Name", "Expertise", "Department ID", "Room ID"};
             setTableData(data, columnNames);
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -120,6 +173,7 @@ public class AdminPage extends JFrame {
             }
         }
     }
+
 
     private void showNurses() {
         try (Connection conn = DBConnection.getConnection();

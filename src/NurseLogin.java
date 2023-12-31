@@ -46,6 +46,9 @@ public class NurseLogin extends JFrame {
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
                     JOptionPane.showMessageDialog(this, "Login Successful!");
+                    int nurseId = rs.getInt("nurseId"); // Assuming the column name is 'nurseId'
+                    new NursePage(nurseId); // Open NursePage with the nurse's ID
+                    this.dispose();
                 } else {
                     JOptionPane.showMessageDialog(this, "Invalid Credentials!");
                 }

@@ -28,7 +28,7 @@ public class ShowAvailableRooms extends JFrame {
 
     private void loadAvailableRooms() {
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement("SELECT roomId, roomType FROM room WHERE availability = 'Available'");
+             PreparedStatement pstmt = conn.prepareStatement("SELECT roomId, roomType FROM room WHERE availability = 'Available' OR availability = 'available'");
              ResultSet rs = pstmt.executeQuery()) {
 
             table.setModel(buildTableModel(rs));

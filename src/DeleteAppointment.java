@@ -1,9 +1,9 @@
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
+import java.sql.*;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 public class DeleteAppointment extends JFrame {
 
@@ -19,7 +19,7 @@ public class DeleteAppointment extends JFrame {
         setLayout(new GridLayout(0, 2));
 
         txtAppointmentId = new JTextField();
-        btnDelete = new JButton("Delete");
+        btnDelete = new JButton("Cancel");
 
         add(new JLabel("Appointment ID:"));
         add(txtAppointmentId);
@@ -33,23 +33,32 @@ public class DeleteAppointment extends JFrame {
 
     private void deleteAppointment() {
         int appointmentId = Integer.parseInt(txtAppointmentId.getText());
+        LocalDateTime now = LocalDateTime.now(ZoneId.of("GMT+3"));
 
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement pstmtCheck = conn.prepareStatement("SELECT * FROM appointment WHERE appointmentId = ? AND patientId = ?")) {
+             PreparedStatement pstmtCheck = conn.prepareStatement(
+                     "SELECT appointmentStart FROM appointment WHERE appointmentId = ? AND patientId = ?")) {
 
             pstmtCheck.setInt(1, appointmentId);
             pstmtCheck.setInt(2, this.patientId);
             ResultSet rs = pstmtCheck.executeQuery();
 
             if (rs.next()) {
-                // Appointment belongs to this patient, proceed with deletion
-                try (PreparedStatement pstmtDelete = conn.prepareStatement("DELETE FROM appointment WHERE appointmentId = ?")) {
-                    pstmtDelete.setInt(1, appointmentId);
-                    pstmtDelete.executeUpdate();
-                    JOptionPane.showMessageDialog(this, "Appointment Deleted Successfully");
+                Timestamp appointmentStart = rs.getTimestamp("appointmentStart");
+                LocalDateTime startDateTime = appointmentStart.toLocalDateTime();
+
+                if (startDateTime.isAfter(now.plusHours(24))) {
+                    // More than 24 hours until the appointment, proceed with deletion
+                    try (PreparedStatement pstmtDelete = conn.prepareStatement("DELETE FROM appointment WHERE appointmentId = ?")) {
+                        pstmtDelete.setInt(1, appointmentId);
+                        pstmtDelete.executeUpdate();
+                        JOptionPane.showMessageDialog(this, "Appointment Deleted Successfully");
+                    }
+                } else {
+                    JOptionPane.showMessageDialog(this, "Cannot cancel appointment. There is less than 24 hours left to the appointment.");
                 }
             } else {
-                // Appointment does not belong to this patient
+                // Appointment does not belong to this patient or does not exist
                 JOptionPane.showMessageDialog(this, "You do not have an appointment with the provided ID.");
             }
         } catch (Exception ex) {

@@ -2,7 +2,7 @@ import java.sql.*;
 public class DBConnection {
     final static String url = "jdbc:mysql://localhost:3306/dehospital";
     final static String user = "root";
-    final static String password = "sqlet123123456028745";
+    final static String password = "dKmySQl202_23";
 
     public static  Connection getConnection()
     {

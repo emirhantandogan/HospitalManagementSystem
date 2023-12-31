@@ -40,21 +40,32 @@ public class AddRoom extends JFrame {
         int nurseId = Integer.parseInt(txtNurseId.getText());
 
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement pstmtGetMax = conn.prepareStatement("SELECT MAX(roomId) FROM room");
-             ResultSet rs = pstmtGetMax.executeQuery()) {
+             PreparedStatement pstmtCheckNurse = conn.prepareStatement("SELECT COUNT(*) FROM room WHERE nurseId = ?")) {
+
+            // Check if the nurse is already assigned to a room
+            pstmtCheckNurse.setInt(1, nurseId);
+            ResultSet rsCheckNurse = pstmtCheckNurse.executeQuery();
+            if (rsCheckNurse.next() && rsCheckNurse.getInt(1) > 0) {
+                JOptionPane.showMessageDialog(this, "This nurse is already assigned to a room.");
+                return; // Stop further execution
+            }
+
+            // If nurse is not assigned, proceed with adding the room
+            PreparedStatement pstmtGetMax = conn.prepareStatement("SELECT MAX(roomId) FROM room");
+            ResultSet rsGetMax = pstmtGetMax.executeQuery();
 
             int maxId = 0;
-            if (rs.next()) {
-                maxId = rs.getInt(1);
+            if (rsGetMax.next()) {
+                maxId = rsGetMax.getInt(1);
             }
             int newRoomId = maxId + 1;
 
-            try (PreparedStatement pstmt = conn.prepareStatement("INSERT INTO room (roomId, roomType, availability, nurseId) VALUES (?, ?, ?, ?)")) {
-                pstmt.setInt(1, newRoomId);
-                pstmt.setString(2, roomType);
-                pstmt.setString(3, availability);
-                pstmt.setInt(4, nurseId);
-                pstmt.executeUpdate();
+            try (PreparedStatement pstmtAddRoom = conn.prepareStatement("INSERT INTO room (roomId, roomType, availability, nurseId) VALUES (?, ?, ?, ?)")) {
+                pstmtAddRoom.setInt(1, newRoomId);
+                pstmtAddRoom.setString(2, roomType);
+                pstmtAddRoom.setString(3, availability);
+                pstmtAddRoom.setInt(4, nurseId);
+                pstmtAddRoom.executeUpdate();
             }
 
             JOptionPane.showMessageDialog(this, "Room Added Successfully with ID: " + newRoomId);
@@ -63,4 +74,5 @@ public class AddRoom extends JFrame {
             JOptionPane.showMessageDialog(this, "Error in adding room: " + ex.getMessage());
         }
     }
+
 }

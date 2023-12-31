@@ -11,12 +11,20 @@ public class PatientPage extends JFrame {
         this.patientId = patientId;
 
         setTitle("Patient Page");
-        setSize(300, 200);
+        setSize(400, 300);
         setLayout(new FlowLayout());
 
-        JButton btnShowDoctorsByExpertise = new JButton("Show Doctors By Expertise");
+        JButton btnShowDoctorsByExpertise = new JButton("Search Doctors By Expertise");
         btnShowDoctorsByExpertise.addActionListener(e -> new ShowDoctorsByExpertise());
         add(btnShowDoctorsByExpertise);
+
+        JButton btnShowDoctorsByAvailableHours = new JButton("Search Doctors By Available Hours");
+        btnShowDoctorsByAvailableHours.addActionListener(e -> new ShowDoctorsByAvailableHours());
+        add(btnShowDoctorsByAvailableHours);
+
+        JButton btnShowDoctorsByTimeInterval = new JButton("Search Doctors By Time Interval");
+        btnShowDoctorsByTimeInterval.addActionListener(e -> new ShowDoctorsByTimeInterval());
+        add(btnShowDoctorsByTimeInterval);
 
         JButton btnMakeAppointment = new JButton("Make Appointment");
         btnMakeAppointment.addActionListener(e -> new MakeAppointment(patientId));
@@ -26,16 +34,24 @@ public class PatientPage extends JFrame {
         btnListAppointments.addActionListener(e -> new ListAppointments(patientId));
         add(btnListAppointments);
 
-        JButton btnDeleteAppointment = new JButton("Delete Appointment");
+        JButton btnDeleteAppointment = new JButton("Cancel Appointment");
         btnDeleteAppointment.addActionListener(e -> new DeleteAppointment(patientId));
         add(btnDeleteAppointment);
+
+        JButton btnShowAppointmentsPatient = new JButton("Show Upcoming Appointments");
+        btnShowAppointmentsPatient.addActionListener(e -> new ShowAppointmentsPatient(patientId));
+        add(btnShowAppointmentsPatient);
+
+        JButton btnShowPastAppointmentsPatient = new JButton("Show Past Appointments");
+        btnShowPastAppointmentsPatient.addActionListener(e -> new ShowPastAppointmentsPatient(patientId));
+        add(btnShowPastAppointmentsPatient);
+
+
 
 
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setVisible(true);
     }
 
-    public static void main(String[] args) {
-        new PatientPage(1); // Example patient ID, replace with actual logic to determine patient ID
-    }
+
 }

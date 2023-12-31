@@ -21,6 +21,19 @@ public class DoctorPage extends JFrame {
         btnShowAvailableRooms.addActionListener(e -> new ShowAvailableRooms());
         add(btnShowAvailableRooms);
 
+        JButton btnAssignRoomToAppointment = new JButton("Assign Room to Appointment");
+        btnAssignRoomToAppointment.addActionListener(e -> new AssignRoomToAppointment(doctorId));
+        add(btnAssignRoomToAppointment);
+
+        JButton btnShowAppointments = new JButton("Show Upcoming Appointments");
+        btnShowAppointments.addActionListener(e -> new ShowAppointmentsDoctor(doctorId));
+        add(btnShowAppointments);
+
+        JButton btnShowPastAppointments = new JButton("Show Past Appointments");
+        btnShowPastAppointments.addActionListener(e -> new ShowPastAppointmentsDoctor(doctorId));
+        add(btnShowPastAppointments);
+
+
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setVisible(true);
     }

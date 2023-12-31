@@ -1,51 +1,67 @@
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.Vector;
 
 public class MakeAppointment extends JFrame {
 
     private int patientId;
-    private JTextField txtDoctorName, txtAppointmentStart, txtAppointmentFinish, txtRoomId;
-    private JButton btnSubmit;
+    private JTextField txtDoctorName, txtAppointmentStart;
+    private JButton btnCheckAvailability, btnSubmit;
+    private JTable appointmentsTable;
 
     public MakeAppointment(int patientId) {
         this.patientId = patientId;
 
         setTitle("Make Appointment");
-        setSize(650, 300);
-        setLayout(new GridLayout(0, 2));
+        setSize(650, 400);
+        getContentPane().setLayout(new BorderLayout());
 
-        txtDoctorName = new JTextField();
-        txtAppointmentStart = new JTextField();
-        txtAppointmentFinish = new JTextField();
-        txtRoomId = new JTextField();
+        JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        txtDoctorName = new JTextField(20);
+        btnCheckAvailability = new JButton("Check Doctor's Unavailable Hours");
+
+        topPanel.add(new JLabel("Doctor Name:"));
+        topPanel.add(txtDoctorName);
+        topPanel.add(btnCheckAvailability);
+
+        getContentPane().add(topPanel, BorderLayout.NORTH);
+
+        appointmentsTable = new JTable();
+        JScrollPane scrollPane = new JScrollPane(appointmentsTable);
+        getContentPane().add(scrollPane, BorderLayout.CENTER);
+
+        JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        txtAppointmentStart = new JTextField(20);
+        txtAppointmentStart.setEnabled(false); // Initially disabled
         btnSubmit = new JButton("Submit");
+        btnSubmit.setEnabled(false); // Initially disabled
 
-        add(new JLabel("Doctor Name:"));
-        add(txtDoctorName);
-        add(new JLabel("Appointment Start (YYYY-MM-DD HH:MM):"));
-        add(txtAppointmentStart);
-        add(new JLabel("Appointment Finish (YYYY-MM-DD HH:MM):"));
-        add(txtAppointmentFinish);
-        add(new JLabel("Room ID:"));
-        add(txtRoomId);
-        add(btnSubmit);
+        bottomPanel.add(new JLabel("Appointment Start (YYYY-MM-DD HH:MM):"));
+        bottomPanel.add(txtAppointmentStart);
+        bottomPanel.add(btnSubmit);
 
+        getContentPane().add(bottomPanel, BorderLayout.SOUTH);
+
+        btnCheckAvailability.addActionListener(e -> showDoctorAppointments());
         btnSubmit.addActionListener(e -> submitAppointment());
 
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setVisible(true);
     }
 
-    private void submitAppointment() {
+    private void showDoctorAppointments() {
         String doctorName = txtDoctorName.getText();
-        String appointmentStart = txtAppointmentStart.getText();
-        String appointmentFinish = txtAppointmentFinish.getText();
-        int roomId = Integer.parseInt(txtRoomId.getText());
-
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement("SELECT doctorId FROM doctor WHERE doctorName = ?")) {
 
@@ -54,15 +70,144 @@ public class MakeAppointment extends JFrame {
 
             if (rs.next()) {
                 int doctorId = rs.getInt("doctorId");
-                insertAppointment(doctorId, appointmentStart, appointmentFinish, roomId);
+                DefaultTableModel model = new DefaultTableModel(new String[]{"Type", "Start", "End"}, 0);
+                fetchAppointmentsAndDayOffs(conn, doctorId, model); // Fetch appointments and day offs
+                appointmentsTable.setModel(model);
+                txtAppointmentStart.setEnabled(true); // Enable after displaying appointments
+                btnSubmit.setEnabled(true); // Enable after displaying appointments
             } else {
                 JOptionPane.showMessageDialog(this, "Doctor not found");
+                txtAppointmentStart.setEnabled(false); // Keep disabled if no doctor found
+                btnSubmit.setEnabled(false); // Keep disabled if no doctor found
             }
         } catch (Exception ex) {
             ex.printStackTrace();
             JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage());
         }
     }
+
+
+    private void fetchAppointmentsAndDayOffs(Connection conn, int doctorId, DefaultTableModel model) {
+        // Fetch appointments
+        try (PreparedStatement pstmt = conn.prepareStatement(
+                "SELECT 'Appointment' as Type, appointmentStart, appointmentFinish FROM appointment WHERE doctorId = ?")) {
+            pstmt.setInt(1, doctorId);
+            ResultSet rs = pstmt.executeQuery();
+            while (rs.next()) {
+                model.addRow(new Object[]{"Appointment", rs.getTimestamp("appointmentStart"), rs.getTimestamp("appointmentFinish")});
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+
+        // Fetch doctor's day-offs
+        try (PreparedStatement pstmt = conn.prepareStatement(
+                "SELECT 'Day Off' as Type, dayoffStart, dayoffEnd FROM doctorschedule WHERE doctorId = ?")) {
+            pstmt.setInt(1, doctorId);
+            ResultSet rs = pstmt.executeQuery();
+            while (rs.next()) {
+                model.addRow(new Object[]{"Day Off", rs.getTimestamp("dayoffStart"), rs.getTimestamp("dayoffEnd")});
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+    }
+
+
+    private boolean isOverlappingAppointment(Connection conn, int doctorId, LocalDateTime start, LocalDateTime finish) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM appointment WHERE doctorId = ? AND NOT (appointmentFinish <= ? OR appointmentStart >= ?)";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, doctorId);
+            pstmt.setString(2, start.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
+            pstmt.setString(3, finish.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
+            ResultSet rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                return rs.getInt(1) > 0;
+            }
+        }
+        return false;
+    }
+
+    private boolean isDoctorUnavailable(Connection conn, int doctorId, LocalDateTime start, LocalDateTime finish) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM doctorschedule WHERE doctorId = ? AND ((dayoffStart < ? AND dayoffEnd > ?) OR (dayoffStart < ? AND dayoffEnd > ?))";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, doctorId);
+            pstmt.setString(2, start.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
+            pstmt.setString(3, start.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
+            pstmt.setString(4, finish.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
+            pstmt.setString(5, finish.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
+            ResultSet rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                return rs.getInt(1) > 0;
+            }
+        }
+        return false;
+    }
+
+    private void submitAppointment() {
+        String doctorName = txtDoctorName.getText();
+        String appointmentStartStr = txtAppointmentStart.getText();
+
+        try {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+            LocalDateTime start = LocalDateTime.parse(appointmentStartStr, formatter);
+            LocalDateTime finish = start.plusMinutes(15); // Appointment duration is 15 minutes
+
+            ZonedDateTime now = ZonedDateTime.now(ZoneId.of("GMT+3"));
+            LocalDateTime oneYearLater = now.plusMonths(12).toLocalDateTime();
+
+            if (start.atZone(ZoneId.of("GMT+3")).isBefore(now)) {
+                JOptionPane.showMessageDialog(this, "You cannot make appointments in the past.");
+                return;
+            }
+
+            if (start.isAfter(oneYearLater)) {
+                JOptionPane.showMessageDialog(this, "You cannot make appointments more than one year in future.");
+                return;
+            }
+
+            try (Connection conn = DBConnection.getConnection();
+                 PreparedStatement pstmt = conn.prepareStatement(
+                         "SELECT d.doctorId, d.roomId, dep.departmentName " +
+                                 "FROM doctor d " +
+                                 "JOIN department dep ON d.departmentId = dep.departmentId " +
+                                 "WHERE d.doctorName = ?")) {
+
+                pstmt.setString(1, doctorName);
+                ResultSet rs = pstmt.executeQuery();
+
+                if (rs.next()) {
+                    int doctorId = rs.getInt("doctorId");
+                    int roomId = rs.getInt("roomId");
+                    String departmentName = rs.getString("departmentName");
+
+                    // Check if the department is not 'Emergency' and the time is within allowed hours
+                    if (!"Emergency".equals(departmentName) && (start.getHour() < 8 || start.getHour() >= 19)) {
+                        JOptionPane.showMessageDialog(this, "Appointments can only be made between 08:00 and 19:00.");
+                        return;
+                    }
+
+                    if (isOverlappingAppointment(conn, doctorId, start, finish) || isDoctorUnavailable(conn, doctorId, start, finish)) {
+                        JOptionPane.showMessageDialog(this, "The doctor is not available at that time.");
+                        return;
+                    }
+
+                    insertAppointment(doctorId, appointmentStartStr, formatter.format(finish), roomId);
+                } else {
+                    JOptionPane.showMessageDialog(this, "Doctor not found");
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage());
+            }
+        } catch (DateTimeParseException ex) {
+            JOptionPane.showMessageDialog(this, "Invalid date format. Please enter date and time in 'YYYY-MM-DD HH:MM' format.");
+        }
+    }
+
+
 
     private void insertAppointment(int doctorId, String start, String finish, int roomId) {
         try (Connection conn = DBConnection.getConnection();
