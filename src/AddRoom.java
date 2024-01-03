@@ -3,26 +3,34 @@ import java.awt.*;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.util.Arrays;
+import java.util.List;
 
 public class AddRoom extends JFrame {
 
-    private JTextField txtRoomType, txtAvailability, txtNurseId;
+    private JComboBox<String> cmbRoomType;
+    private JTextField txtNurseId;
     private JButton btnAdd;
+
+    private final List<String> rooms = Arrays.asList(
+            "doctor room", "Pathology Lab", "Vaccination Room", "Recovery Room",
+            "Ultrasound Room", "X-Ray Room", "Burn Unit Room", "Isolation Room",
+            "Intensive Care Unit Room", "Physical Therapy Room", "Endoscopy Room",
+            "Dialysis Room", "CT Scan Room", "MRI Room", "Radiology Room","Surgery Room",
+            "Delivery Room", "Sleep Study Room"
+    );
 
     public AddRoom() {
         setTitle("Add Room");
         setSize(400, 150);
         setLayout(new GridLayout(0, 2));
 
-        txtRoomType = new JTextField();
-        txtAvailability = new JTextField();
+        cmbRoomType = new JComboBox<>(rooms.toArray(new String[0]));
         txtNurseId = new JTextField();
         btnAdd = new JButton("Add");
 
         add(new JLabel("Room Type:"));
-        add(txtRoomType);
-        add(new JLabel("Availability:"));
-        add(txtAvailability);
+        add(cmbRoomType);
         add(new JLabel("Nurse ID:"));
         add(txtNurseId);
         add(btnAdd);
@@ -34,7 +42,7 @@ public class AddRoom extends JFrame {
     }
 
     private void addRoom() {
-        String roomType = txtRoomType.getText();
+        String roomType = (String) cmbRoomType.getSelectedItem();
         int nurseId = Integer.parseInt(txtNurseId.getText());
 
         try (Connection conn = DBConnection.getConnection();
@@ -70,5 +78,7 @@ public class AddRoom extends JFrame {
         }
     }
 
-
+    public static void main(String[] args) {
+        new AddRoom();
+    }
 }

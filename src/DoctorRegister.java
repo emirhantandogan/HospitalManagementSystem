@@ -1,7 +1,5 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -10,8 +8,9 @@ import java.util.List;
 
 public class DoctorRegister extends JFrame {
 
-    private JTextField txtDoctorName, txtDoctorExpertise, txtDepartmentId, txtRoomId;
+    private JTextField txtDoctorName, txtDepartmentId, txtRoomId;
     private JPasswordField txtPassword;
+    private JComboBox<String> comboDoctorExpertise;
     private JButton btnRegister;
 
     private final List<String> validExpertises = Arrays.asList(
@@ -22,39 +21,34 @@ public class DoctorRegister extends JFrame {
             "Plastic Surgeon", "Sports Medicine Physician", "Neonatologist", "Geriatrician", "Physiatrist", "Allergist/Immunologist",
             "Pathologist", "Plastic Surgeon"
     );
+
     public DoctorRegister() {
         setTitle("Register Doctor");
         setSize(350, 250);
         setLayout(new GridLayout(0, 2));
 
-        // Initialize components
         txtDoctorName = new JTextField();
         txtPassword = new JPasswordField();
-        txtDoctorExpertise = new JTextField();
         txtDepartmentId = new JTextField();
         txtRoomId = new JTextField();
         btnRegister = new JButton("Register");
 
-        // Add components to the frame
+        String[] expertiseArray = validExpertises.toArray(new String[0]);
+        comboDoctorExpertise = new JComboBox<>(expertiseArray);
+
         add(new JLabel("Name:"));
         add(txtDoctorName);
         add(new JLabel("Password:"));
         add(txtPassword);
         add(new JLabel("Expertise:"));
-        add(txtDoctorExpertise);
+        add(comboDoctorExpertise);
         add(new JLabel("Department ID:"));
         add(txtDepartmentId);
         add(new JLabel("Room ID:"));
         add(txtRoomId);
         add(btnRegister);
 
-
-        btnRegister.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                registerDoctor();
-            }
-        });
+        btnRegister.addActionListener(e -> registerDoctor());
 
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setVisible(true);
@@ -64,26 +58,15 @@ public class DoctorRegister extends JFrame {
         String name = txtDoctorName.getText();
         String password = new String(txtPassword.getPassword());
         String hashedPassword = Hashing.hashPassword(password);
-        String expertise = txtDoctorExpertise.getText().toLowerCase();
+        String expertise = (String) comboDoctorExpertise.getSelectedItem();
         int departmentId = Integer.parseInt(txtDepartmentId.getText());
         int roomId = Integer.parseInt(txtRoomId.getText());
-
-
-        boolean isValidExpertise = validExpertises.stream()
-                .map(String::toLowerCase)
-                .anyMatch(e -> e.equals(expertise));
-
-        if (!isValidExpertise) {
-            JOptionPane.showMessageDialog(this, "Such doctor expertise is not accepted.");
-            return;
-        }
 
         Connection conn = null;
         PreparedStatement pstmt = null;
         ResultSet rs = null;
         try {
             conn = DBConnection.getConnection();
-
 
             String queryRoom = "SELECT doctorId FROM doctor WHERE roomId = ?";
             pstmt = conn.prepareStatement(queryRoom);

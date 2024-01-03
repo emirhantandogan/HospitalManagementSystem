@@ -8,7 +8,7 @@ import java.util.List;
 
 public class AddDepartment extends JFrame {
 
-    private JTextField txtDepartmentName;
+    private JComboBox<String> comboDepartmentNames;
     private JButton btnAdd;
 
     private final List<String> validDepartments = Arrays.asList(
@@ -25,11 +25,13 @@ public class AddDepartment extends JFrame {
         setSize(400, 100);
         setLayout(new GridLayout(0, 2));
 
-        txtDepartmentName = new JTextField();
+        // Convert List to array for JComboBox
+        String[] departmentArray = validDepartments.toArray(new String[0]);
+        comboDepartmentNames = new JComboBox<>(departmentArray);
         btnAdd = new JButton("Add");
 
         add(new JLabel("Department Name:"));
-        add(txtDepartmentName);
+        add(comboDepartmentNames);
         add(btnAdd);
 
         btnAdd.addActionListener(e -> addDepartment());
@@ -39,17 +41,7 @@ public class AddDepartment extends JFrame {
     }
 
     private void addDepartment() {
-        String departmentName = txtDepartmentName.getText().trim().toLowerCase();
-
-
-        boolean isValidDepartment = validDepartments.stream()
-                .map(String::toLowerCase)
-                .anyMatch(d -> d.equals(departmentName));
-
-        if (!isValidDepartment) {
-            JOptionPane.showMessageDialog(this, "Such department name is not accepted.");
-            return;
-        }
+        String departmentName = (String) comboDepartmentNames.getSelectedItem();
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement pstmtGetMax = conn.prepareStatement("SELECT MAX(departmentId) FROM department");
@@ -73,4 +65,7 @@ public class AddDepartment extends JFrame {
         }
     }
 
+    public static void main(String[] args) {
+        new AddDepartment();
+    }
 }

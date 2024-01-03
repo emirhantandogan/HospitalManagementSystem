@@ -143,7 +143,20 @@ public class MakeAppointment extends JFrame {
         }
         return false;
     }
+    private boolean hasExistingAppointmentOnSameDay(Connection conn, int doctorId, LocalDateTime start) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM appointment WHERE doctorId = ? AND patientId = ? AND DATE(appointmentStart) = DATE(?)";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, doctorId);
+            pstmt.setInt(2, this.patientId);
+            pstmt.setString(3, start.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+            ResultSet rs = pstmt.executeQuery();
 
+            if (rs.next()) {
+                return rs.getInt(1) > 0;
+            }
+        }
+        return false;
+    }
     private void submitAppointment() {
         String doctorName = txtDoctorName.getText();
         String appointmentStartStr = txtAppointmentStart.getText();
@@ -151,7 +164,7 @@ public class MakeAppointment extends JFrame {
         try {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
             LocalDateTime start = LocalDateTime.parse(appointmentStartStr, formatter);
-            LocalDateTime finish = start.plusMinutes(15); // Appointment duration is 15 minutes
+            LocalDateTime finish = start.plusMinutes(15);
 
             ZonedDateTime now = ZonedDateTime.now(ZoneId.of("GMT+3"));
             LocalDateTime oneYearLater = now.plusMonths(12).toLocalDateTime();
@@ -183,6 +196,11 @@ public class MakeAppointment extends JFrame {
 
                     if (!"Emergency".equals(departmentName) && (start.getHour() < 8 || start.getHour() >= 19)) {
                         JOptionPane.showMessageDialog(this, "Appointments can only be made between 08:00 and 19:00.");
+                        return;
+                    }
+
+                    if (hasExistingAppointmentOnSameDay(conn, doctorId, start)) {
+                        JOptionPane.showMessageDialog(this, "You already have an appointment with this doctor on the same day.");
                         return;
                     }
 
