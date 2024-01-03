@@ -21,7 +21,7 @@ public class AdminPage extends JFrame {
         setLayout(new BorderLayout());
 
         // Panel for buttons
-        JPanel buttonPanel = new JPanel(new GridLayout(2, 15)); // Two rows for buttons
+        JPanel buttonPanel = new JPanel(new GridLayout(2, 15));
 
         // Adding placeholder buttons
         JButton btnAddDoctor = new JButton("Add Doctor");
@@ -97,21 +97,23 @@ public class AdminPage extends JFrame {
         buttonPanel.add(btnMostRoomsBookedDoctors);
 
 
-        // Add more buttons as needed
 
-        // Table for displaying database data
-        table = new JTable(); // You will populate this table with data from the database
+        table = new JTable();
+
         JScrollPane scrollPane = new JScrollPane(table);
 
-        // Adding components to the frame
+
+
         add(buttonPanel, BorderLayout.NORTH);
-        add(scrollPane, BorderLayout.CENTER); // ScrollPane for table
+        add(scrollPane, BorderLayout.CENTER);
+
+
 
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setVisible(true);
     }
 
-    // Method to update table data
+
     public void setTableData(Object[][] data, String[] columnNames) {
         table.setModel(new DefaultTableModel(data, columnNames));
     }
@@ -126,7 +128,6 @@ public class AdminPage extends JFrame {
             pstmt = conn.prepareStatement(sql);
             rs = pstmt.executeQuery();
 
-            // Convert ResultSet to Object[][]
             Object[][] data = resultSetToObjectArray(rs);
             String[] columnNames = {"Patient ID", "Name", "Date of Birth", "Gender", "Address", "Contact Info"};
             setTableData(data, columnNames);
@@ -150,14 +151,11 @@ public class AdminPage extends JFrame {
         ResultSet rs = null;
         try {
             conn = DBConnection.getConnection();
-            // Include roomId in the SELECT statement
             String sql = "SELECT doctorId, doctorName, doctorExpertise, departmentId, roomId FROM doctor";
             pstmt = conn.prepareStatement(sql);
             rs = pstmt.executeQuery();
 
-            // Convert ResultSet to Object[][]
             Object[][] data = resultSetToObjectArray(rs);
-            // Include "Room ID" in the column names
             String[] columnNames = {"Doctor ID", "Name", "Expertise", "Department ID", "Room ID"};
             setTableData(data, columnNames);
         } catch (Exception ex) {
@@ -189,7 +187,6 @@ public class AdminPage extends JFrame {
         }
     }
 
-    // Helper method to convert ResultSet to Object[][]
     private Object[][] resultSetToObjectArray(ResultSet rs) throws SQLException {
         ResultSetMetaData metaData = rs.getMetaData();
         int columnCount = metaData.getColumnCount();

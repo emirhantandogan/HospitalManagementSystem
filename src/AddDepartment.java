@@ -1,6 +1,5 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -12,7 +11,6 @@ public class AddDepartment extends JFrame {
     private JTextField txtDepartmentName;
     private JButton btnAdd;
 
-    // List of valid department names
     private final List<String> validDepartments = Arrays.asList(
             "Emergency", "Forensic Medicine", "Child Mental Health", "Pediatrics",
             "Dermatology", "Infectious Diseases", "Chest Diseases", "Internal Medicine",
@@ -41,12 +39,12 @@ public class AddDepartment extends JFrame {
     }
 
     private void addDepartment() {
-        String departmentName = txtDepartmentName.getText().trim().toLowerCase(); // Convert input department name to lowercase
+        String departmentName = txtDepartmentName.getText().trim().toLowerCase();
 
-        // Check if the department name is valid (case-insensitive check)
+
         boolean isValidDepartment = validDepartments.stream()
-                .map(String::toLowerCase) // Convert each department in the list to lowercase
-                .anyMatch(d -> d.equals(departmentName)); // Check for a match
+                .map(String::toLowerCase)
+                .anyMatch(d -> d.equals(departmentName));
 
         if (!isValidDepartment) {
             JOptionPane.showMessageDialog(this, "Such department name is not accepted.");
@@ -65,7 +63,7 @@ public class AddDepartment extends JFrame {
 
             try (PreparedStatement pstmt = conn.prepareStatement("INSERT INTO department (departmentId, departmentName) VALUES (?, ?)")) {
                 pstmt.setInt(1, newDepartmentId);
-                pstmt.setString(2, departmentName); // Here, departmentName is already in lowercase
+                pstmt.setString(2, departmentName);
                 pstmt.executeUpdate();
                 JOptionPane.showMessageDialog(this, "Department Added Successfully with ID: " + newDepartmentId);
             }

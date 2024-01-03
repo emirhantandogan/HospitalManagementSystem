@@ -24,23 +24,20 @@ public class AssignRoomToAppointment extends JFrame {
         this.doctorId = doctorId;
         setTitle("Assign Room to Appointment - Doctor ID: " + doctorId);
 
-        // Main panel with BoxLayout for vertical stacking
         JPanel mainPanel = new JPanel();
         mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
 
-        // Table setup
         table = new JTable();
         JScrollPane scrollPane = new JScrollPane(table);
-        scrollPane.setPreferredSize(new Dimension(580, 200)); // Adjust the size as needed
+        scrollPane.setPreferredSize(new Dimension(580, 200));
         mainPanel.add(scrollPane);
 
-        // Panel for assignment
         JPanel panel = new JPanel();
         panel.setLayout(new FlowLayout());
 
         txtAppointmentId = new JTextField(10);
         txtNewRoomId = new JTextField(10);
-        txtStartTime = new JTextField(15); // TextField for start time
+        txtStartTime = new JTextField(15);
         btnAssign = new JButton("Assign Room");
 
         panel.add(new JLabel("Appointment ID:"));
@@ -55,11 +52,9 @@ public class AssignRoomToAppointment extends JFrame {
 
         add(mainPanel);
 
-        // Adjust layout and pack
-        pack(); // Let Swing handle the frame size
-        setLocationRelativeTo(null); // Center on screen
+        pack();
+        setLocationRelativeTo(null);
 
-        // Button action
         btnAssign.addActionListener(e -> assignRoom());
 
         showAppointments();
@@ -73,12 +68,27 @@ public class AssignRoomToAppointment extends JFrame {
             int appointmentId = Integer.parseInt(txtAppointmentId.getText().trim());
             int newRoomId = Integer.parseInt(txtNewRoomId.getText().trim());
             LocalDateTime startTime = LocalDateTime.parse(txtStartTime.getText().trim(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
-            LocalDateTime endTime = startTime.plusMinutes(15); // Add 15 minutes to start time
+            LocalDateTime endTime = startTime.plusMinutes(15);
 
             conn = DBConnection.getConnection();
-            conn.setAutoCommit(false); // Start transaction
+            conn.setAutoCommit(false);
 
-            // Assign the new room to the appointment
+            String checkOverlapSql = "SELECT COUNT(*) FROM roomschedule "
+                    + "WHERE roomId = ? AND ((rentStart < ? AND rentEnd > ?) OR (rentStart < ? AND rentEnd > ?))";
+            try (PreparedStatement pstmtCheckOverlap = conn.prepareStatement(checkOverlapSql)) {
+                pstmtCheckOverlap.setInt(1, newRoomId);
+                pstmtCheckOverlap.setTimestamp(2, Timestamp.valueOf(endTime));
+                pstmtCheckOverlap.setTimestamp(3, Timestamp.valueOf(startTime));
+                pstmtCheckOverlap.setTimestamp(4, Timestamp.valueOf(endTime));
+                pstmtCheckOverlap.setTimestamp(5, Timestamp.valueOf(startTime));
+                ResultSet rsOverlap = pstmtCheckOverlap.executeQuery();
+                if (rsOverlap.next() && rsOverlap.getInt(1) > 0) {
+                    JOptionPane.showMessageDialog(this, "This room is already booked for the selected time.");
+                    conn.rollback();
+                    return;
+                }
+            }
+
             String updateAppointmentSql = "UPDATE appointment SET roomId = ? WHERE appointmentId = ? AND doctorId = ?";
             try (PreparedStatement pstmtUpdateAppointment = conn.prepareStatement(updateAppointmentSql)) {
                 pstmtUpdateAppointment.setInt(1, newRoomId);
@@ -87,7 +97,6 @@ public class AssignRoomToAppointment extends JFrame {
                 pstmtUpdateAppointment.executeUpdate();
             }
 
-            // Insert into roomschedule
             String insertRoomScheduleSql = "INSERT INTO roomschedule (roomId, rentStart, rentEnd, doctorId) VALUES (?, ?, ?, ?)";
             try (PreparedStatement pstmtInsertRoomSchedule = conn.prepareStatement(insertRoomScheduleSql)) {
                 pstmtInsertRoomSchedule.setInt(1, newRoomId);
@@ -97,7 +106,7 @@ public class AssignRoomToAppointment extends JFrame {
                 pstmtInsertRoomSchedule.executeUpdate();
             }
 
-            conn.commit(); // Commit transaction
+            conn.commit();
             JOptionPane.showMessageDialog(this, "Room assigned successfully.");
             showAppointments(); // Refresh the appointments table
 
@@ -108,19 +117,21 @@ public class AssignRoomToAppointment extends JFrame {
         } catch (SQLException ex) {
             ex.printStackTrace();
             JOptionPane.showMessageDialog(this, "Database error: " + ex.getMessage());
-            try {
-                if (conn != null) conn.rollback(); // Rollback on error
-            } catch (SQLException ex2) {
-                ex2.printStackTrace();
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                } catch (SQLException ex2) {
+                    ex2.printStackTrace();
+                }
             }
         } finally {
-            try {
-                if (conn != null) {
-                    conn.setAutoCommit(true); // Reset auto-commit
+            if (conn != null) {
+                try {
+                    conn.setAutoCommit(true);
                     conn.close();
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
                 }
-            } catch (SQLException ex) {
-                ex.printStackTrace();
             }
         }
     }
@@ -146,7 +157,6 @@ public class AssignRoomToAppointment extends JFrame {
         }
     }
 
-    // Helper method to convert ResultSet to Object[][]
     private Object[][] resultSetToObjectArray(ResultSet rs) throws SQLException {
         ResultSetMetaData metaData = rs.getMetaData();
         int columnCount = metaData.getColumnCount();

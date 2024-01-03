@@ -18,19 +18,16 @@ public class PatientLogin extends JFrame {
         setSize(300, 200);
         setLayout(new GridLayout(0, 2));
 
-        // Initialize components
         txtPatientName = new JTextField();
         txtPassword = new JPasswordField();
         btnLogin = new JButton("Login");
 
-        // Add components to the frame
         add(new JLabel("Name:"));
         add(txtPatientName);
         add(new JLabel("Password:"));
         add(txtPassword);
         add(btnLogin);
 
-        // Login button action
         btnLogin.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -45,7 +42,7 @@ public class PatientLogin extends JFrame {
     private void loginPatient() {
         String name = txtPatientName.getText();
         String password = new String(txtPassword.getPassword());
-        String hashedPassword = Hashing.hashPassword(password); // Ensure Hashing class exists and works correctly
+        String hashedPassword = Hashing.hashPassword(password);
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement("SELECT * FROM patient WHERE patientName = ? AND patientPassword = ?")) {
@@ -57,8 +54,8 @@ public class PatientLogin extends JFrame {
                 if (rs.next()) {
                     int patientId = rs.getInt("patientId"); // Assuming the column name is 'patientId'
                     JOptionPane.showMessageDialog(this, "Login Successful!");
-                    new PatientPage(patientId).setVisible(true); // Open PatientPage with the patient's ID
-                    this.dispose(); // Close the login window
+                    new PatientPage(patientId).setVisible(true);
+                    this.dispose();
                 } else {
                     JOptionPane.showMessageDialog(this, "Invalid Credentials!");
                 }

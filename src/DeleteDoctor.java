@@ -15,16 +15,13 @@ public class DeleteDoctor extends JFrame {
         setSize(300, 100);
         setLayout(new GridLayout(0, 2));
 
-        // Initialize components
         txtDoctorId = new JTextField();
         btnDelete = new JButton("Delete");
 
-        // Add components to the frame
         add(new JLabel("Doctor ID:"));
         add(txtDoctorId);
         add(btnDelete);
 
-        // Delete button action
         btnDelete.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -44,7 +41,6 @@ public class DeleteDoctor extends JFrame {
         try {
             conn = DBConnection.getConnection();
 
-            // Delete the doctor with the given ID
             String sql = "DELETE FROM doctor WHERE doctorId = ?";
             pstmt = conn.prepareStatement(sql);
 

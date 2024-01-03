@@ -2,9 +2,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.sql.*;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import javax.swing.table.DefaultTableModel;
@@ -53,9 +51,8 @@ public class ShowAppointmentsDoctor extends JFrame {
     }
 
     private void fetchAppointments(int days) {
-        // Use the current date and time in the GMT+3 timezone
         ZonedDateTime nowZoned = ZonedDateTime.now(ZoneId.of("GMT+3"));
-        LocalDateTime now = nowZoned.toLocalDateTime(); // Convert to a LocalDateTime object
+        LocalDateTime now = nowZoned.toLocalDateTime();
         ZonedDateTime endDateTimeZoned = nowZoned.plusDays(days).withHour(23).withMinute(59).withSecond(59);
         LocalDateTime endDateTime = endDateTimeZoned.toLocalDateTime(); // Convert to a LocalDateTime object
 
@@ -66,8 +63,8 @@ public class ShowAppointmentsDoctor extends JFrame {
                              "ORDER BY appointmentStart")) {
 
             pstmt.setInt(1, doctorId);
-            pstmt.setTimestamp(2, Timestamp.valueOf(now)); // Current time
-            pstmt.setTimestamp(3, Timestamp.valueOf(endDateTime)); // End of the period
+            pstmt.setTimestamp(2, Timestamp.valueOf(now));
+            pstmt.setTimestamp(3, Timestamp.valueOf(endDateTime));
             ResultSet rs = pstmt.executeQuery();
 
             String[] columnNames = {"Appointment ID", "Start Time", "End Time", "Patient ID"};

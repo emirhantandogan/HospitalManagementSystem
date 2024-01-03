@@ -24,7 +24,7 @@ public class DoctorRegister extends JFrame {
     );
     public DoctorRegister() {
         setTitle("Register Doctor");
-        setSize(350, 250); // Adjusted size for the new field
+        setSize(350, 250);
         setLayout(new GridLayout(0, 2));
 
         // Initialize components
@@ -32,7 +32,7 @@ public class DoctorRegister extends JFrame {
         txtPassword = new JPasswordField();
         txtDoctorExpertise = new JTextField();
         txtDepartmentId = new JTextField();
-        txtRoomId = new JTextField(); // New text field for Room ID
+        txtRoomId = new JTextField();
         btnRegister = new JButton("Register");
 
         // Add components to the frame
@@ -48,7 +48,7 @@ public class DoctorRegister extends JFrame {
         add(txtRoomId);
         add(btnRegister);
 
-        // Register button action
+
         btnRegister.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -64,14 +64,14 @@ public class DoctorRegister extends JFrame {
         String name = txtDoctorName.getText();
         String password = new String(txtPassword.getPassword());
         String hashedPassword = Hashing.hashPassword(password);
-        String expertise = txtDoctorExpertise.getText().toLowerCase(); // Convert input expertise to lowercase
+        String expertise = txtDoctorExpertise.getText().toLowerCase();
         int departmentId = Integer.parseInt(txtDepartmentId.getText());
         int roomId = Integer.parseInt(txtRoomId.getText());
 
-        // Check if the doctor's expertise is valid (case-insensitive check)
+
         boolean isValidExpertise = validExpertises.stream()
-                .map(String::toLowerCase) // Convert each expertise in the list to lowercase
-                .anyMatch(e -> e.equals(expertise)); // Check for a match
+                .map(String::toLowerCase)
+                .anyMatch(e -> e.equals(expertise));
 
         if (!isValidExpertise) {
             JOptionPane.showMessageDialog(this, "Such doctor expertise is not accepted.");
@@ -84,7 +84,17 @@ public class DoctorRegister extends JFrame {
         try {
             conn = DBConnection.getConnection();
 
-            // Retrieve the maximum doctorId
+
+            String queryRoom = "SELECT doctorId FROM doctor WHERE roomId = ?";
+            pstmt = conn.prepareStatement(queryRoom);
+            pstmt.setInt(1, roomId);
+            rs = pstmt.executeQuery();
+            if (rs.next()) {
+                JOptionPane.showMessageDialog(this, "This room is already assigned to another doctor.");
+                return;
+            }
+
+
             String queryMaxId = "SELECT MAX(doctorId) FROM doctor";
             pstmt = conn.prepareStatement(queryMaxId);
             rs = pstmt.executeQuery();
@@ -94,7 +104,7 @@ public class DoctorRegister extends JFrame {
             }
             int newDoctorId = maxId + 1;
 
-            // Insert the new doctor with Room ID
+
             String sql = "INSERT INTO doctor (doctorId, doctorName, doctorPassword, doctorExpertise, departmentId, roomId) VALUES (?, ?, ?, ?, ?, ?)";
             pstmt = conn.prepareStatement(sql);
 
@@ -107,6 +117,13 @@ public class DoctorRegister extends JFrame {
 
             int affectedRows = pstmt.executeUpdate();
             if (affectedRows > 0) {
+
+                String updateRoomSql = "UPDATE room SET availability = 'Occupied' WHERE roomId = ?";
+                try (PreparedStatement pstmtUpdateRoom = conn.prepareStatement(updateRoomSql)) {
+                    pstmtUpdateRoom.setInt(1, roomId);
+                    pstmtUpdateRoom.executeUpdate();
+                }
+
                 JOptionPane.showMessageDialog(this, "Doctor Registered. ID: " + newDoctorId);
             }
         } catch (Exception ex) {
@@ -122,6 +139,7 @@ public class DoctorRegister extends JFrame {
             }
         }
     }
+
 
     public static void main(String[] args) {
         new DoctorRegister();

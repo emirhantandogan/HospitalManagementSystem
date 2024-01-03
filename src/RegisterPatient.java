@@ -7,7 +7,6 @@ import java.text.SimpleDateFormat;
 
 public class RegisterPatient extends JFrame {
 
-    // Components
     private JTextField txtPatientName, txtContactInfo, txtAddress;
     private JPasswordField txtPassword;
     private JComboBox<String> comboGender;
@@ -19,7 +18,6 @@ public class RegisterPatient extends JFrame {
         setSize(300, 400);
         setLayout(new GridLayout(0, 2));
 
-        // Initialize components
         txtPatientName = new JTextField();
         txtPassword = new JPasswordField();
         txtContactInfo = new JTextField();
@@ -28,7 +26,6 @@ public class RegisterPatient extends JFrame {
         txtDob = new JFormattedTextField(new SimpleDateFormat("yyyy-MM-dd"));
         btnRegister = new JButton("Register");
 
-        // Add components to the frame
         add(new JLabel("Name:"));
         add(txtPatientName);
         add(new JLabel("Password:"));
@@ -43,7 +40,6 @@ public class RegisterPatient extends JFrame {
         add(txtDob);
         add(btnRegister);
 
-        // Register button action
         btnRegister.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -70,7 +66,6 @@ public class RegisterPatient extends JFrame {
         try {
             conn = DBConnection.getConnection();
 
-            // Retrieve the maximum patientId
             String queryMaxId = "SELECT MAX(patientId) FROM patient";
             pstmt = conn.prepareStatement(queryMaxId);
             rs = pstmt.executeQuery();
@@ -80,7 +75,6 @@ public class RegisterPatient extends JFrame {
             }
             int newPatientId = maxId + 1;
 
-            // Insert the new patient
             String sql = "INSERT INTO patient (patientId, patientPassword, patientName, contactInfo, dob, gender, address) VALUES (?, ?, ?, ?, ?, ?, ?)";
             pstmt = conn.prepareStatement(sql);
 

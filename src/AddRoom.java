@@ -1,6 +1,5 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -36,21 +35,18 @@ public class AddRoom extends JFrame {
 
     private void addRoom() {
         String roomType = txtRoomType.getText();
-        String availability = txtAvailability.getText();
         int nurseId = Integer.parseInt(txtNurseId.getText());
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement pstmtCheckNurse = conn.prepareStatement("SELECT COUNT(*) FROM room WHERE nurseId = ?")) {
 
-            // Check if the nurse is already assigned to a room
             pstmtCheckNurse.setInt(1, nurseId);
             ResultSet rsCheckNurse = pstmtCheckNurse.executeQuery();
             if (rsCheckNurse.next() && rsCheckNurse.getInt(1) > 0) {
                 JOptionPane.showMessageDialog(this, "This nurse is already assigned to a room.");
-                return; // Stop further execution
+                return;
             }
 
-            // If nurse is not assigned, proceed with adding the room
             PreparedStatement pstmtGetMax = conn.prepareStatement("SELECT MAX(roomId) FROM room");
             ResultSet rsGetMax = pstmtGetMax.executeQuery();
 
@@ -60,11 +56,10 @@ public class AddRoom extends JFrame {
             }
             int newRoomId = maxId + 1;
 
-            try (PreparedStatement pstmtAddRoom = conn.prepareStatement("INSERT INTO room (roomId, roomType, availability, nurseId) VALUES (?, ?, ?, ?)")) {
+            try (PreparedStatement pstmtAddRoom = conn.prepareStatement("INSERT INTO room (roomId, roomType, availability, nurseId) VALUES (?, ?, 'Available', ?)")) {
                 pstmtAddRoom.setInt(1, newRoomId);
                 pstmtAddRoom.setString(2, roomType);
-                pstmtAddRoom.setString(3, availability);
-                pstmtAddRoom.setInt(4, nurseId);
+                pstmtAddRoom.setInt(3, nurseId);
                 pstmtAddRoom.executeUpdate();
             }
 
@@ -74,5 +69,6 @@ public class AddRoom extends JFrame {
             JOptionPane.showMessageDialog(this, "Error in adding room: " + ex.getMessage());
         }
     }
+
 
 }

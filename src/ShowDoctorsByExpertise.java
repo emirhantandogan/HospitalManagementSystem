@@ -1,7 +1,6 @@
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -59,13 +58,11 @@ public class ShowDoctorsByExpertise extends JFrame {
         ResultSetMetaData metaData = rs.getMetaData();
         int columnCount = metaData.getColumnCount();
 
-        // Create vector of column names
         Vector<String> columnNamesVector = new Vector<>();
         for (int column = 0; column < columnCount; column++) {
             columnNamesVector.add(columnNames[column]);
         }
 
-        // Create vector of data rows
         Vector<Vector<Object>> data = new Vector<>();
         while (rs.next()) {
             Vector<Object> vector = new Vector<>();

@@ -19,19 +19,18 @@ public class RegisterAdmin extends JFrame {
         setSize(300, 200);
         setLayout(new GridLayout(0, 2));
 
-        // Initialize components
+
         txtAdminName = new JTextField();
         txtPassword = new JPasswordField();
         btnRegister = new JButton("Register");
 
-        // Add components to the frame
+
         add(new JLabel("Name:"));
         add(txtAdminName);
         add(new JLabel("Password:"));
         add(txtPassword);
         add(btnRegister);
 
-        // Register button action
         btnRegister.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -54,7 +53,6 @@ public class RegisterAdmin extends JFrame {
         try {
             conn = DBConnection.getConnection();
 
-            // Retrieve the maximum adminId
             String queryMaxId = "SELECT MAX(adminId) FROM admin";
             pstmt = conn.prepareStatement(queryMaxId);
             rs = pstmt.executeQuery();
@@ -64,7 +62,6 @@ public class RegisterAdmin extends JFrame {
             }
             int newAdminId = maxId + 1;
 
-            // Insert the new admin
             String sql = "INSERT INTO admin (adminId, adminName, adminPassword) VALUES (?, ?, ?)";
             pstmt = conn.prepareStatement(sql);
 

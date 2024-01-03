@@ -1,6 +1,5 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 import java.sql.*;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -58,7 +57,6 @@ public class DeleteAppointment extends JFrame {
                     JOptionPane.showMessageDialog(this, "Cannot cancel appointment. There is less than 24 hours left to the appointment.");
                 }
             } else {
-                // Appointment does not belong to this patient or does not exist
                 JOptionPane.showMessageDialog(this, "You do not have an appointment with the provided ID.");
             }
         } catch (Exception ex) {

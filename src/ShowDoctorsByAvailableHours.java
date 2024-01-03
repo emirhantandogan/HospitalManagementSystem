@@ -93,13 +93,11 @@ public class ShowDoctorsByAvailableHours extends JFrame {
         ResultSetMetaData metaData = rs.getMetaData();
         int columnCount = metaData.getColumnCount();
 
-        // Create vector of column names
         Vector<String> columnNamesVector = new Vector<>();
         for (int column = 0; column < columnCount; column++) {
             columnNamesVector.add(columnNames[column]);
         }
 
-        // Create vector of data rows
         Vector<Vector<Object>> data = new Vector<>();
         while (rs.next()) {
             Vector<Object> vector = new Vector<>();

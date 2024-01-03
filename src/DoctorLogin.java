@@ -1,6 +1,5 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -46,8 +45,8 @@ public class DoctorLogin extends JFrame {
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
                     JOptionPane.showMessageDialog(this, "Login Successful!");
-                    int doctorId = rs.getInt("doctorId"); // Assuming the column name is 'doctorId'
-                    new DoctorPage(doctorId); // Open DoctorPage with the doctor's ID
+                    int doctorId = rs.getInt("doctorId");
+                    new DoctorPage(doctorId);
                     this.dispose();
                 } else {
                     JOptionPane.showMessageDialog(this, "Invalid Credentials!");

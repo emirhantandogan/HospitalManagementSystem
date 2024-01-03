@@ -32,7 +32,6 @@ public class DepartmentPatientRoomStatistics extends JFrame {
         Map<String, Integer[]> departmentStats = new HashMap<>();
 
         try (Connection conn = DBConnection.getConnection()) {
-            // Fetch total appointments and those needing a room for each department
             String sql = "SELECT d.departmentName, " +
                     "COUNT(*) AS totalAppointments, " +
                     "SUM(CASE WHEN a.roomId != doc.roomId THEN 1 ELSE 0 END) AS roomsNeeded " +

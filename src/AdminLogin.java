@@ -18,19 +18,19 @@ public class AdminLogin extends JFrame {
         setSize(300, 200);
         setLayout(new GridLayout(0, 2));
 
-        // Initialize components
+
         txtAdminName = new JTextField();
         txtPassword = new JPasswordField();
         btnLogin = new JButton("Login");
 
-        // Add components to the frame
+
         add(new JLabel("Name:"));
         add(txtAdminName);
         add(new JLabel("Password:"));
         add(txtPassword);
         add(btnLogin);
 
-        // Login button action
+
         btnLogin.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -53,7 +53,7 @@ public class AdminLogin extends JFrame {
         try {
             conn = DBConnection.getConnection();
 
-            // Check if the admin exists with the given name and hashed password
+
             String sql = "SELECT * FROM admin WHERE adminName = ? AND adminPassword = ?";
             pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, name);
@@ -62,9 +62,9 @@ public class AdminLogin extends JFrame {
             rs = pstmt.executeQuery();
             if (rs.next()) {
                 JOptionPane.showMessageDialog(this, "Login Successful!");
-                // Here, you can redirect the admin to another window or perform other actions upon successful login
+
                 new AdminPage().setVisible(true);
-                this.dispose();//closes the login window
+                this.dispose();
             } else {
                 JOptionPane.showMessageDialog(this, "Invalid Credentials!");
             }

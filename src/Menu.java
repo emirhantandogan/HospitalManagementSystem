@@ -10,7 +10,6 @@ public class Menu extends JFrame {
         setSize(400, 200);
         setLayout(new FlowLayout());
 
-        // Creating buttons
         JButton btnRegisterPatient = new JButton("Register Patient");
         JButton btnLoginPatient = new JButton("Login Patient");
         JButton btnRegisterAdmin = new JButton("Register Admin");
@@ -18,7 +17,6 @@ public class Menu extends JFrame {
         JButton btnLoginDoctor = new JButton("Login Doctor");
         JButton btnLoginNurse = new JButton("Login Nurse");
 
-        // Add action listeners
         btnRegisterPatient.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -59,13 +57,12 @@ public class Menu extends JFrame {
             }
         });
 
-        // Add buttons to the frame
         add(btnRegisterPatient);
         add(btnLoginPatient);
         add(btnRegisterAdmin);
         add(btnLoginAdmin);
-        add(btnLoginDoctor); // Placeholder for future implementation
-        add(btnLoginNurse);  // Placeholder for future implementation
+        add(btnLoginDoctor);
+        add(btnLoginNurse);
 
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setVisible(true);

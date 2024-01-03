@@ -28,7 +28,6 @@ public class NurseAppointmentRatioStatistics extends JFrame {
 
     private void calculateAndDisplayStatistics() {
         try (Connection conn = DBConnection.getConnection()) {
-            // Query to fetch the number of distinct nurses and non-'doctor room' appointments per department
             String sql = "SELECT d.departmentName, " +
                     "COUNT(DISTINCT r.nurseId) AS distinctNurses, " +
                     "SUM(CASE WHEN r.roomType != 'doctor room' THEN 1 ELSE 0 END) AS nonDoctorRoomAppointments " +

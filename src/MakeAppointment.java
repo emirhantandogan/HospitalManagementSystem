@@ -1,7 +1,6 @@
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -11,7 +10,6 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.Vector;
 
 public class MakeAppointment extends JFrame {
 
@@ -43,9 +41,9 @@ public class MakeAppointment extends JFrame {
 
         JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         txtAppointmentStart = new JTextField(20);
-        txtAppointmentStart.setEnabled(false); // Initially disabled
+        txtAppointmentStart.setEnabled(false);
         btnSubmit = new JButton("Submit");
-        btnSubmit.setEnabled(false); // Initially disabled
+        btnSubmit.setEnabled(false);
 
         bottomPanel.add(new JLabel("Appointment Start (YYYY-MM-DD HH:MM):"));
         bottomPanel.add(txtAppointmentStart);
@@ -71,14 +69,14 @@ public class MakeAppointment extends JFrame {
             if (rs.next()) {
                 int doctorId = rs.getInt("doctorId");
                 DefaultTableModel model = new DefaultTableModel(new String[]{"Type", "Start", "End"}, 0);
-                fetchAppointmentsAndDayOffs(conn, doctorId, model); // Fetch appointments and day offs
+                fetchAppointmentsAndDayOffs(conn, doctorId, model);
                 appointmentsTable.setModel(model);
-                txtAppointmentStart.setEnabled(true); // Enable after displaying appointments
-                btnSubmit.setEnabled(true); // Enable after displaying appointments
+                txtAppointmentStart.setEnabled(true);
+                btnSubmit.setEnabled(true);
             } else {
                 JOptionPane.showMessageDialog(this, "Doctor not found");
-                txtAppointmentStart.setEnabled(false); // Keep disabled if no doctor found
-                btnSubmit.setEnabled(false); // Keep disabled if no doctor found
+                txtAppointmentStart.setEnabled(false);
+                btnSubmit.setEnabled(false);
             }
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -100,7 +98,7 @@ public class MakeAppointment extends JFrame {
             ex.printStackTrace();
         }
 
-        // Fetch doctor's day-offs
+
         try (PreparedStatement pstmt = conn.prepareStatement(
                 "SELECT 'Day Off' as Type, dayoffStart, dayoffEnd FROM doctorschedule WHERE doctorId = ?")) {
             pstmt.setInt(1, doctorId);
@@ -183,7 +181,6 @@ public class MakeAppointment extends JFrame {
                     int roomId = rs.getInt("roomId");
                     String departmentName = rs.getString("departmentName");
 
-                    // Check if the department is not 'Emergency' and the time is within allowed hours
                     if (!"Emergency".equals(departmentName) && (start.getHour() < 8 || start.getHour() >= 19)) {
                         JOptionPane.showMessageDialog(this, "Appointments can only be made between 08:00 and 19:00.");
                         return;

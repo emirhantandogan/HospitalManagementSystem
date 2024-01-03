@@ -1,6 +1,5 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -38,7 +37,6 @@ public class NurseRegister extends JFrame {
         String hashedPassword = Hashing.hashPassword(password);
 
         try (Connection conn = DBConnection.getConnection()) {
-            // Retrieve the maximum nurseId
             int maxId = 0;
             try (PreparedStatement pstmtMax = conn.prepareStatement("SELECT MAX(nurseId) FROM nurse");
                  ResultSet rs = pstmtMax.executeQuery()) {
@@ -48,7 +46,6 @@ public class NurseRegister extends JFrame {
             }
             int newNurseId = maxId + 1;
 
-            // Insert the new nurse
             try (PreparedStatement pstmt = conn.prepareStatement("INSERT INTO nurse (nurseId, nurseName, nursePassword) VALUES (?, ?, ?)")) {
                 pstmt.setInt(1, newNurseId);
                 pstmt.setString(2, name);

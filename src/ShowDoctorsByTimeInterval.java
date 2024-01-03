@@ -40,14 +40,13 @@ public class ShowDoctorsByTimeInterval extends JFrame {
         btnSearch = new JButton("Search");
         buttonPanel.add(btnSearch);
 
-        // Add sub-panels to the main panel
         panel.add(startPanel);
         panel.add(endPanel);
         panel.add(buttonPanel);
 
         table = new JTable();
         JScrollPane scrollPane = new JScrollPane(table);
-        getContentPane().add(panel, BorderLayout.NORTH); // Add the main panel to the frame
+        getContentPane().add(panel, BorderLayout.NORTH);
         getContentPane().add(scrollPane, BorderLayout.CENTER);
 
         btnSearch.addActionListener(this::searchDoctors);
@@ -111,13 +110,11 @@ public class ShowDoctorsByTimeInterval extends JFrame {
         ResultSetMetaData metaData = rs.getMetaData();
         int columnCount = metaData.getColumnCount();
 
-        // Create vector of column names
         Vector<String> columnNamesVector = new Vector<>();
         for (int column = 0; column < columnCount; column++) {
             columnNamesVector.add(columnNames[column]);
         }
 
-        // Create vector of data rows
         Vector<Vector<Object>> data = new Vector<>();
         while (rs.next()) {
             Vector<Object> vector = new Vector<>();

@@ -51,11 +51,10 @@ public class ShowAppointmentsPatient extends JFrame {
     }
 
     private void fetchAppointments(int days) {
-        // Use the current date and time in the GMT+3 timezone
         ZonedDateTime nowZoned = ZonedDateTime.now(ZoneId.of("GMT+3"));
-        LocalDateTime now = nowZoned.toLocalDateTime(); // Convert to a LocalDateTime object
+        LocalDateTime now = nowZoned.toLocalDateTime();
         ZonedDateTime endDateTimeZoned = nowZoned.plusDays(days).withHour(23).withMinute(59).withSecond(59);
-        LocalDateTime endDateTime = endDateTimeZoned.toLocalDateTime(); // Convert to a LocalDateTime object
+        LocalDateTime endDateTime = endDateTimeZoned.toLocalDateTime();
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(
@@ -64,8 +63,8 @@ public class ShowAppointmentsPatient extends JFrame {
                              "ORDER BY appointmentStart")) {
 
             pstmt.setInt(1, patientId);
-            pstmt.setTimestamp(2, Timestamp.valueOf(now)); // Current time
-            pstmt.setTimestamp(3, Timestamp.valueOf(endDateTime)); // End of the period
+            pstmt.setTimestamp(2, Timestamp.valueOf(now));
+            pstmt.setTimestamp(3, Timestamp.valueOf(endDateTime));
             ResultSet rs = pstmt.executeQuery();
 
             String[] columnNames = {"Appointment ID", "Start Time", "End Time", "Doctor ID"};

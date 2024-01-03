@@ -1,10 +1,9 @@
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
+import java.sql.*;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Vector;
 
 public class ShowAvailableRooms extends JFrame {
@@ -27,9 +26,19 @@ public class ShowAvailableRooms extends JFrame {
     }
 
     private void loadAvailableRooms() {
+        ZonedDateTime now = ZonedDateTime.now(ZoneId.of("GMT+3"));
+        Timestamp currentTime = Timestamp.valueOf(now.toLocalDateTime());
+
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement("SELECT roomId, roomType FROM room WHERE availability = 'Available' OR availability = 'available'");
-             ResultSet rs = pstmt.executeQuery()) {
+             PreparedStatement pstmt = conn.prepareStatement(
+                     "SELECT r.roomId, r.roomType FROM room r " +
+                             "LEFT JOIN roomschedule rs ON r.roomId = rs.roomId " +
+                             "AND rs.rentStart <= ? AND rs.rentEnd >= ? " +
+                             "WHERE r.availability = 'Available' AND rs.roomId IS NULL")) {
+
+            pstmt.setTimestamp(1, currentTime);
+            pstmt.setTimestamp(2, currentTime);
+            ResultSet rs = pstmt.executeQuery();
 
             table.setModel(buildTableModel(rs));
         } catch (Exception ex) {
@@ -59,5 +68,9 @@ public class ShowAvailableRooms extends JFrame {
         }
 
         return new DefaultTableModel(data, columnNames);
+    }
+
+    public static void main(String[] args) {
+        new ShowAvailableRooms();
     }
 }
